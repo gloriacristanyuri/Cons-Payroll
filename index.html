@@ -3,39 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Construction Payroll Calculator</title>
+    <title>Construction Payroll Calculator (PHP)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <h1 class="text-2xl font-bold mb-4 text-blue-800">Construction Wage Calculator</h1>
+<body class="bg-slate-100 p-4 md:p-8">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h1 class="text-3xl font-bold mb-2 text-blue-900">Construction Wage Calculator</h1>
+        <p class="text-gray-600 mb-6 font-medium">Currency: Philippine Peso (₱)</p>
         
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <input id="workerName" type="text" placeholder="Worker Name" class="p-2 border rounded">
-            <input id="role" type="text" placeholder="Role (e.g. Mason)" class="p-2 border rounded">
-            <input id="startDate" type="date" class="p-2 border rounded">
-            <input id="endDate" type="date" class="p-2 border rounded">
-            <input id="dailyRate" type="number" placeholder="Daily Rate ($)" class="p-2 border rounded">
-            <input id="otHours" type="number" placeholder="Total OT Hours" class="p-2 border rounded">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="block text-sm font-semibold mb-1">Worker Name</label>
+                <input id="workerName" type="text" placeholder="Juan Dela Cruz" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-1">Role</label>
+                <input id="role" type="text" placeholder="Foreman / Carpenter" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-1">Start Date</label>
+                <input id="startDate" type="date" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-1">End Date</label>
+                <input id="endDate" type="date" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-1">Daily Rate (₱)</label>
+                <input id="dailyRate" type="number" placeholder="610" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-1">Total OT Hours</label>
+                <input id="otHours" type="number" placeholder="0" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
         </div>
 
-        <button onclick="addWorker()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add to List</button>
-        <button onclick="exportToExcel()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 ml-2">Download Excel</button>
+        <div class="flex gap-3">
+            <button onclick="addWorker()" class="flex-1 bg-blue-700 text-white font-bold py-3 rounded-lg hover:bg-blue-800 transition">Add Worker</button>
+            <button onclick="exportToExcel()" class="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition">Download Excel</button>
+        </div>
 
-        <table class="w-full mt-8 border-collapse border border-gray-300">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th class="border p-2 text-left">Name</th>
-                    <th class="border p-2 text-left">Days</th>
-                    <th class="border p-2 text-left">Daily Rate</th>
-                    <th class="border p-2 text-left">OT Hours</th>
-                    <th class="border p-2 text-left">Gross Wage</th>
-                </tr>
-            </thead>
-            <tbody id="workerTableBody">
-                </tbody>
-        </table>
+        <div class="mt-8 overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-blue-900 text-white text-sm">
+                        <th class="p-3 text-left">Name</th>
+                        <th class="p-3 text-center">Days</th>
+                        <th class="p-3 text-right">Daily Rate</th>
+                        <th class="p-3 text-center">OT Hours</th>
+                        <th class="p-3 text-right">Gross Wage</th>
+                    </tr>
+                </thead>
+                <tbody id="workerTableBody" class="text-sm">
+                    </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
@@ -50,17 +73,17 @@
             const ot = parseFloat(document.getElementById('otHours').value) || 0;
 
             if (!name || isNaN(start) || isNaN(end) || isNaN(rate)) {
-                alert("Please fill in all fields correctly.");
+                alert("Pakikumpleto ang lahat ng fields.");
                 return;
             }
 
-            // Calculate days (inclusive)
+            // Calculate inclusive days
             const diffTime = Math.abs(end - start);
             const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
             
             const standardPay = totalDays * rate;
             const hourlyRate = rate / 8;
-            const otPay = ot * (hourlyRate * 1.5);
+            const otPay = ot * (hourlyRate * 1.25); // PH Standard: Usually 125% for regular OT
             const grossWage = standardPay + otPay;
 
             const worker = {
@@ -76,30 +99,34 @@
 
             workerData.push(worker);
             updateTable();
+            
+            // Clear inputs for next entry
+            document.getElementById('workerName').value = '';
+            document.getElementById('otHours').value = '';
         }
 
         function updateTable() {
             const tbody = document.getElementById('workerTableBody');
             tbody.innerHTML = workerData.map(w => `
-                <tr>
-                    <td class="border p-2">${w["Worker Name"]}</td>
-                    <td class="border p-2">${w["Total Days"]}</td>
-                    <td class="border p-2">$${w["Daily Rate"]}</td>
-                    <td class="border p-2">${w["OT Hours"]}</td>
-                    <td class="border p-2 font-bold">$${w["Gross Wage"]}</td>
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 font-medium">${w["Worker Name"]}</td>
+                    <td class="p-3 text-center">${w["Total Days"]}</td>
+                    <td class="p-3 text-right">₱${parseFloat(w["Daily Rate"]).toLocaleString()}</td>
+                    <td class="p-3 text-center">${w["OT Hours"]}</td>
+                    <td class="p-3 text-right font-bold text-blue-800">₱${parseFloat(w["Gross Wage"]).toLocaleString()}</td>
                 </tr>
             `).join('');
         }
 
         function exportToExcel() {
             if (workerData.length === 0) {
-                alert("No data to export!");
+                alert("Wala pang data na pwedeng i-export.");
                 return;
             }
             const worksheet = XLSX.utils.json_to_sheet(workerData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Payroll");
-            XLSX.writeFile(workbook, "Construction_Payroll.xlsx");
+            XLSX.writeFile(workbook, "Construction_Payroll_PHP.xlsx");
         }
     </script>
 </body>
