@@ -3,130 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Construction Payroll Calculator (PHP)</title>
+    <title>Wage Calculator (PHP)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in-row { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
 </head>
-<body class="bg-slate-100 p-4 md:p-8">
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 class="text-3xl font-bold mb-2 text-blue-900">Construction Wage Calculator</h1>
+<body class="p-4 md:p-10">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 text-center md:text-left">
+            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">
+                <span class="text-amber-500 text-3xl md:text-4xl">WAGE</span> CALCULATOR
+            </h1>
+            <p class="text-slate-500 font-bold italic mt-1 text-lg">Hello bebi ayos ba?</p>
+        </header>
 
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-                <label class="block text-sm font-semibold mb-1">Worker Name</label>
-                <input id="workerName" type="text" placeholder="Juan Dela Cruz" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold mb-1">Role</label>
-                <input id="role" type="text" placeholder="Foreman / Carpenter" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold mb-1">Start Date</label>
-                <input id="startDate" type="date" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold mb-1">End Date</label>
-                <input id="endDate" type="date" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold mb-1">Daily Rate (₱)</label>
-                <input id="dailyRate" type="number" placeholder="610" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold mb-1">Total OT Hours</label>
-                <input id="otHours" type="number" placeholder="0" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1 glass-card p-6 rounded-2xl shadow-xl border-t-4 border-amber-500 h-fit sticky top-10">
+                <h2 class="text-lg font-bold mb-4 text-slate-800 flex items-center">
+                    <span class="mr-2">👷</span> Worker Input
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">First Name</label>
+                            <input id="firstName" type="text" placeholder="Juan" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Last Name</label>
+                            <input id="lastName" type="text" placeholder="Dela Cruz" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition text-sm">
+                        </div>
+                    </div>
 
-        <div class="flex gap-3">
-            <button onclick="addWorker()" class="flex-1 bg-blue-700 text-white font-bold py-3 rounded-lg hover:bg-blue-800 transition">Add Worker</button>
-            <button onclick="exportToExcel()" class="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition">Download Excel</button>
-        </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Position</label>
+                        <select id="roleSelect" onchange="toggleOtherRole()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm cursor-pointer">
+                            <option value="Foreman">Foreman</option>
+                            <option value="Carpenter">Carpenter</option>
+                            <option value="Mason">Mason</option>
+                            <option value="Electrician">Electrician</option>
+                            <option value="Plumber">Plumber</option>
+                            <option value="Laborer">Laborer</option>
+                            <option value="Welder">Welder</option>
+                            <option value="Other">Other...</option>
+                        </select>
+                    </div>
 
-        <div class="mt-8 overflow-x-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="bg-blue-900 text-white text-sm">
-                        <th class="p-3 text-left">Name</th>
-                        <th class="p-3 text-center">Days</th>
-                        <th class="p-3 text-right">Daily Rate</th>
-                        <th class="p-3 text-center">OT Hours</th>
-                        <th class="p-3 text-right">Gross Wage</th>
-                    </tr>
-                </thead>
-                <tbody id="workerTableBody" class="text-sm">
-                    </tbody>
-            </table>
+                    <div id="otherRoleContainer" class="hidden">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Specify Position</label>
+                        <input id="otherRole" type="text" placeholder="Type position here" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm transition">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Start Date</label>
+                            <input id="startDate" type="date" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">End Date</label>
+                            <input id="endDate" type="date" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Daily Rate (₱)</label>
+                            <input id="dailyRate" type="number" placeholder="610" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">OT Hours</label>
+                            <input id="otHours" type="number" placeholder="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none">
+                        </div>
+                    </div>
+                    
+                    <button onclick="addWorker()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transform active:scale-95 transition-all shadow-lg mt-2 flex items-center justify-center">
+                        <span class="mr-2">➕</span> Add Worker
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Summary of Wages</h2>
+                    <button onclick="exportToExcel()" class="bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-emerald-700 shadow-md transition flex items-center">
+                        <span class="mr-2">📊</span> Export Excel
+                    </button>
+                </div>
+
+                <div class="glass-card rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-slate-900 text-white text-[10px] uppercase tracking-widest">
+                                    <th class="p-4 text-left">Worker</th>
+                                    <th class="p-4 text-center">Days</th>
+                                    <th class="p-4 text-right">Standard Pay</th>
+                                    <th class="p-4 text-right">OT Pay</th>
+                                    <th class="p-4 text-right">Gross Wage</th>
+                                    <th class="p-4 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workerTableBody" class="divide-y divide-slate-100">
+                                </tbody>
+                        </table>
+                    </div>
+                    <div id="emptyState" class="p-10 text-center text-slate-400 font-medium">
+                        No workers added yet.
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         let workerData = [];
 
+        function toggleOtherRole() {
+            const select = document.getElementById('roleSelect');
+            const container = document.getElementById('otherRoleContainer');
+            container.classList.toggle('hidden', select.value !== 'Other');
+        }
+
         function addWorker() {
-            const name = document.getElementById('workerName').value;
-            const role = document.getElementById('role').value;
-            const start = new Date(document.getElementById('startDate').value);
-            const end = new Date(document.getElementById('endDate').value);
+            const fName = document.getElementById('firstName').value.trim();
+            const lName = document.getElementById('lastName').value.trim();
+            const roleSelect = document.getElementById('roleSelect').value;
+            const role = roleSelect === 'Other' ? document.getElementById('otherRole').value.trim() : roleSelect;
+            const startStr = document.getElementById('startDate').value;
+            const endStr = document.getElementById('endDate').value;
             const rate = parseFloat(document.getElementById('dailyRate').value);
             const ot = parseFloat(document.getElementById('otHours').value) || 0;
 
-            if (!name || isNaN(start) || isNaN(end) || isNaN(rate)) {
-                alert("Pakikumpleto ang lahat ng fields.");
+            if (!fName || !lName || !role || !startStr || !endStr || isNaN(rate)) {
+                alert("Pakikumpleto ang lahat ng field.");
                 return;
             }
 
-            // Calculate inclusive days
-            const diffTime = Math.abs(end - start);
-            const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            const start = new Date(startStr);
+            const end = new Date(endStr);
+            const totalDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1;
             
             const standardPay = totalDays * rate;
-            const hourlyRate = rate / 8;
-            const otPay = ot * (hourlyRate * 1.25); // PH Standard: Usually 125% for regular OT
+            const otPay = ot * ((rate / 8) * 1.25);
             const grossWage = standardPay + otPay;
 
             const worker = {
-                "Worker Name": name,
-                "Role": role,
-                "Start Date": document.getElementById('startDate').value,
-                "End Date": document.getElementById('endDate').value,
+                id: Date.now(), // Unique ID for deleting
+                "Last Name": lName,
+                "First Name": fName,
+                "Position": role,
+                "Start Date": startStr,
+                "End Date": endStr,
                 "Total Days": totalDays,
                 "Daily Rate": rate,
+                "Standard Pay": standardPay.toFixed(2),
                 "OT Hours": ot,
+                "OT Pay": otPay.toFixed(2),
                 "Gross Wage": grossWage.toFixed(2)
             };
 
             workerData.push(worker);
+            document.getElementById('emptyState').classList.add('hidden');
             updateTable();
             
-            // Clear inputs for next entry
-            document.getElementById('workerName').value = '';
+            // UI Reset
+            document.getElementById('firstName').value = '';
+            document.getElementById('lastName').value = '';
             document.getElementById('otHours').value = '';
+            document.getElementById('otherRole').value = '';
+        }
+
+        function deleteEntry(id) {
+            if(confirm("Are you sure you want to delete this entry?")) {
+                workerData = workerData.filter(worker => worker.id !== id);
+                if (workerData.length === 0) {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                }
+                updateTable();
+            }
         }
 
         function updateTable() {
             const tbody = document.getElementById('workerTableBody');
             tbody.innerHTML = workerData.map(w => `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="p-3 font-medium">${w["Worker Name"]}</td>
-                    <td class="p-3 text-center">${w["Total Days"]}</td>
-                    <td class="p-3 text-right">₱${parseFloat(w["Daily Rate"]).toLocaleString()}</td>
-                    <td class="p-3 text-center">${w["OT Hours"]}</td>
-                    <td class="p-3 text-right font-bold text-blue-800">₱${parseFloat(w["Gross Wage"]).toLocaleString()}</td>
+                <tr class="fade-in-row hover:bg-slate-50 transition-colors">
+                    <td class="p-4">
+                        <div class="font-bold text-slate-800 leading-tight">${w["Last Name"]}, ${w["First Name"]}</div>
+                        <div class="text-[10px] text-slate-400 font-black uppercase tracking-tighter">${w["Position"]}</div>
+                    </td>
+                    <td class="p-4 text-center font-bold text-slate-600 text-sm">${w["Total Days"]}</td>
+                    <td class="p-4 text-right text-slate-600 text-xs font-semibold">₱${parseFloat(w["Standard Pay"]).toLocaleString()}</td>
+                    <td class="p-4 text-right text-slate-600 text-xs">₱${parseFloat(w["OT Pay"]).toLocaleString()} <br><span class="text-[9px] text-slate-400">(${w["OT Hours"]}h)</span></td>
+                    <td class="p-4 text-right">
+                        <span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-lg text-sm font-black ring-1 ring-amber-200">
+                            ₱${parseFloat(w["Gross Wage"]).toLocaleString()}
+                        </span>
+                    </td>
+                    <td class="p-4 text-center">
+                        <button onclick="deleteEntry(${w.id})" class="text-slate-300 hover:text-red-500 transition-colors p-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </td>
                 </tr>
             `).join('');
         }
 
         function exportToExcel() {
-            if (workerData.length === 0) {
-                alert("Wala pang data na pwedeng i-export.");
-                return;
-            }
-            const worksheet = XLSX.utils.json_to_sheet(workerData);
+            if (workerData.length === 0) return alert("No data yet");
+            
+            // Clean data for export (remove the 'id' field used for deletion)
+            const cleanData = workerData.map(({id, ...rest}) => rest);
+            
+            const worksheet = XLSX.utils.json_to_sheet(cleanData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Payroll");
-            XLSX.writeFile(workbook, "Construction_Payroll_PHP.xlsx");
+            XLSX.writeFile(workbook, "Wage_Report.xlsx");
         }
     </script>
 </body>
