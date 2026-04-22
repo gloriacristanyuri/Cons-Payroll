@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construction Payroll Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold mb-4 text-blue-800">Construction Wage Calculator</h1>
+        
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <input id="workerName" type="text" placeholder="Worker Name" class="p-2 border rounded">
+            <input id="role" type="text" placeholder="Role (e.g. Mason)" class="p-2 border rounded">
+            <input id="startDate" type="date" class="p-2 border rounded">
+            <input id="endDate" type="date" class="p-2 border rounded">
+            <input id="dailyRate" type="number" placeholder="Daily Rate ($)" class="p-2 border rounded">
+            <input id="otHours" type="number" placeholder="Total OT Hours" class="p-2 border rounded">
+        </div>
+
+        <button onclick="addWorker()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add to List</button>
+        <button onclick="exportToExcel()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 ml-2">Download Excel</button>
+
+        <table class="w-full mt-8 border-collapse border border-gray-300">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="border p-2 text-left">Name</th>
+                    <th class="border p-2 text-left">Days</th>
+                    <th class="border p-2 text-left">Daily Rate</th>
+                    <th class="border p-2 text-left">OT Hours</th>
+                    <th class="border p-2 text-left">Gross Wage</th>
+                </tr>
+            </thead>
+            <tbody id="workerTableBody">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        let workerData = [];
+
+        function addWorker() {
+            const name = document.getElementById('workerName').value;
+            const role = document.getElementById('role').value;
+            const start = new Date(document.getElementById('startDate').value);
+            const end = new Date(document.getElementById('endDate').value);
+            const rate = parseFloat(document.getElementById('dailyRate').value);
+            const ot = parseFloat(document.getElementById('otHours').value) || 0;
+
+            if (!name || isNaN(start) || isNaN(end) || isNaN(rate)) {
+                alert("Please fill in all fields correctly.");
+                return;
+            }
+
+            // Calculate days (inclusive)
+            const diffTime = Math.abs(end - start);
+            const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            
+            const standardPay = totalDays * rate;
+            const hourlyRate = rate / 8;
+            const otPay = ot * (hourlyRate * 1.5);
+            const grossWage = standardPay + otPay;
+
+            const worker = {
+                "Worker Name": name,
+                "Role": role,
+                "Start Date": document.getElementById('startDate').value,
+                "End Date": document.getElementById('endDate').value,
+                "Total Days": totalDays,
+                "Daily Rate": rate,
+                "OT Hours": ot,
+                "Gross Wage": grossWage.toFixed(2)
+            };
+
+            workerData.push(worker);
+            updateTable();
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('workerTableBody');
+            tbody.innerHTML = workerData.map(w => `
+                <tr>
+                    <td class="border p-2">${w["Worker Name"]}</td>
+                    <td class="border p-2">${w["Total Days"]}</td>
+                    <td class="border p-2">$${w["Daily Rate"]}</td>
+                    <td class="border p-2">${w["OT Hours"]}</td>
+                    <td class="border p-2 font-bold">$${w["Gross Wage"]}</td>
+                </tr>
+            `).join('');
+        }
+
+        function exportToExcel() {
+            if (workerData.length === 0) {
+                alert("No data to export!");
+                return;
+            }
+            const worksheet = XLSX.utils.json_to_sheet(workerData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Payroll");
+            XLSX.writeFile(workbook, "Construction_Payroll.xlsx");
+        }
+    </script>
+</body>
+</html>
